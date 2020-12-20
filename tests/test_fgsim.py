@@ -8,6 +8,11 @@ import pytest
 from fgsim import fgsim
 
 
+def importtest():
+    foo = fgsim
+    print(dir(foo))
+
+
 @pytest.fixture
 def response():
     """Sample pytest fixture.
