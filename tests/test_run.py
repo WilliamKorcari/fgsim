@@ -7,7 +7,8 @@ import importlib
 
 
 def importtest():
-    run = importlib.import_module("run")
+    import run
+
     print(dir(run))
 
 

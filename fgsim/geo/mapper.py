@@ -9,6 +9,5 @@ class geomapper:
     def __init__(self, configfile: TextIO):
         self.configfile = configfile
         print(f"Init mappber by {self.configfile}")
-        with open(self.configfile, "r") as f:
-            for line in f:
-                print(line)
+        with open(self.configfile, "r") as _:
+            pass
