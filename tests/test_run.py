@@ -3,14 +3,12 @@
 """Tests for `fgsim` package."""
 
 import pytest
-
-
-from fgsim import fgsim
+import importlib
 
 
 def importtest():
-    foo = fgsim
-    print(dir(foo))
+    run = importlib.import_module("run")
+    print(dir(run))
 
 
 @pytest.fixture
