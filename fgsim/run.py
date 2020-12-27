@@ -1,7 +1,5 @@
 """Main module."""
 import pretty_errors
-from geo.mapper import geomapper
-import os
 
 pretty_errors.configure(
     separator_character="*",
@@ -16,9 +14,55 @@ pretty_errors.configure(
     display_locals=True,
 )
 
+from config import *
 
-print(os.path.curdir)
+import torch
+import torch.optim as optim
+import numpy as np
 
-mymapper = geomapper("data/test.toml")
+from model import Generator, Discriminator
+from data_loader import train_data
 
-print("Main module is called")
+
+generator = Generator(nz).to(device)
+discriminator = Discriminator().to(device)
+
+print("##### GENERATOR #####")
+print(generator)
+print("######################")
+
+print("\n##### DISCRIMINATOR #####")
+print(discriminator)
+print("######################")
+
+# optimizers
+optim_g = optim.Adam(generator.parameters(), lr=0.0002)
+optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
+
+# loss function
+criterion = torch.nn.BCELoss()
+
+
+from train import training_procedure
+
+generator, discriminator, images = training_procedure(
+    generator, discriminator, optim_g, optim_d, criterion, train_data
+)
+
+
+print("DONE TRAINING")
+torch.save(generator.state_dict(), "output/generator.pth")
+
+from data_dumper import generate_gif
+
+generate_gif(images)
+
+
+from matplotlib import pyplot as plt
+
+# plot and save the generator and discriminator loss
+plt.figure()
+plt.plot(losses_g, label="Generator loss")
+plt.plot(losses_d, label="Discriminator Loss")
+plt.legend()
+plt.savefig("output/loss.png")
