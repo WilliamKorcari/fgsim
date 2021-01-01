@@ -1,4 +1,4 @@
-from config import *
+from .config import *
 import torch
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -27,7 +27,7 @@ def save_generator_image(image, path):
 
 
 # function to train the discriminator network
-def train_discriminator(discriminator,optimizer,criterion, data_real, data_fake):
+def train_discriminator(discriminator, optimizer, criterion, data_real, data_fake):
     b_size = data_real.size(0)
     real_label = label_real(b_size)
     fake_label = label_fake(b_size)
@@ -48,7 +48,7 @@ def train_discriminator(discriminator,optimizer,criterion, data_real, data_fake)
 
 
 # function to train the generator network
-def train_generator(generator,discriminator,optimizer,criterion, data_fake):
+def train_generator(generator, discriminator, optimizer, criterion, data_fake):
     b_size = data_fake.size(0)
     real_label = label_real(b_size)
 
@@ -63,7 +63,9 @@ def train_generator(generator,discriminator,optimizer,criterion, data_fake):
     return loss
 
 
-def training_procedure(generator, discriminator, optim_g, optim_d, criterion, train_data):
+def training_procedure(
+    generator, discriminator, optim_g, optim_d, criterion, train_data
+):
     train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
     # create the noise vector
     noise = create_noise(sample_size, nz)
@@ -89,10 +91,14 @@ def training_procedure(generator, discriminator, optim_g, optim_d, criterion, tr
                 data_fake = generator(create_noise(b_size, nz)).detach()
                 data_real = image
                 # train the discriminator network
-                loss_d += train_discriminator(discriminator,optim_d,criterion, data_real, data_fake)
+                loss_d += train_discriminator(
+                    discriminator, optim_d, criterion, data_real, data_fake
+                )
             data_fake = generator(create_noise(b_size, nz))
             # train the generator network
-            loss_g += train_generator(generator,discriminator,optim_g,criterion, data_fake)
+            loss_g += train_generator(
+                generator, discriminator, optim_g, criterion, data_fake
+            )
 
         # create the final fake image for the epoch
         generated_img = generator(noise).cpu().detach()

@@ -14,14 +14,14 @@ pretty_errors.configure(
     display_locals=True,
 )
 
-from config import *
+from .config import *
 
 import torch
 import torch.optim as optim
 import numpy as np
 
-from model import Generator, Discriminator
-from data_loader import train_data
+from .model import Generator, Discriminator
+from .data_loader import train_data
 
 
 generator = Generator(nz).to(device)
@@ -43,7 +43,7 @@ optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
 criterion = torch.nn.BCELoss()
 
 
-from train import training_procedure
+from .train import training_procedure
 
 generator, discriminator, images = training_procedure(
     generator, discriminator, optim_g, optim_d, criterion, train_data
@@ -53,7 +53,7 @@ generator, discriminator, images = training_procedure(
 print("DONE TRAINING")
 torch.save(generator.state_dict(), "output/generator.pth")
 
-from data_dumper import generate_gif
+from .data_dumper import generate_gif
 
 generate_gif(images)
 
