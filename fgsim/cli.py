@@ -3,16 +3,13 @@ import argparse
 import sys
 
 
-def main():
-    """Console script for fgsim."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument("_", nargs="*")
-    args = parser.parse_args()
+"""Console script for fgsim."""
+parser = argparse.ArgumentParser()
 
-    print("Arguments: " + str(args._))
-    print("Replace this message by putting your code into " "fgsim.cli.main")
-    return 0
+subparsers = parser.add_subparsers(help="Available Commands", dest="command")
 
+train_parser = subparsers.add_parser("train")
 
-if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+geo_parser = subparsers.add_parser("geo")
+
+args = parser.parse_args()

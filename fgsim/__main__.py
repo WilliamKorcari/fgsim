@@ -1,4 +1,7 @@
 """Main module."""
+import torch
+import torch.optim as optim
+import numpy as np
 import pretty_errors
 
 pretty_errors.configure(
@@ -14,55 +17,47 @@ pretty_errors.configure(
     display_locals=True,
 )
 
-from .config import *
 
-import torch
-import torch.optim as optim
-import numpy as np
+from .cli import args
 
-from .model import Generator, Discriminator
-from .data_loader import train_data
+if args.command == "geo":
+    from .geo import mapper
 
-
-generator = Generator(nz).to(device)
-discriminator = Discriminator().to(device)
-
-print("##### GENERATOR #####")
-print(generator)
-print("######################")
-
-print("\n##### DISCRIMINATOR #####")
-print(discriminator)
-print("######################")
-
-# optimizers
-optim_g = optim.Adam(generator.parameters(), lr=0.0002)
-optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
-
-# loss function
-criterion = torch.nn.BCELoss()
+    foo = mapper.geomapper("data/test.toml")
 
 
-from .train import training_procedure
+if args.command == "train":
+    from .config import device,nz
+    from .model import Generator, Discriminator
+    from .data_loader import train_data
 
-generator, discriminator, images = training_procedure(
-    generator, discriminator, optim_g, optim_d, criterion, train_data
-)
+    generator = Generator(nz).to(device)
+    discriminator = Discriminator().to(device)
 
+    print("##### GENERATOR #####")
+    print(generator)
+    print("######################")
 
-print("DONE TRAINING")
-torch.save(generator.state_dict(), "output/generator.pth")
+    print("\n##### DISCRIMINATOR #####")
+    print(discriminator)
+    print("######################")
 
-from .data_dumper import generate_gif
+    # optimizers
+    optim_g = optim.Adam(generator.parameters(), lr=0.0002)
+    optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
 
-generate_gif(images)
+    # loss function
+    criterion = torch.nn.BCELoss()
 
+    from .train import training_procedure
 
-from matplotlib import pyplot as plt
+    generator, discriminator, images = training_procedure(
+        generator, discriminator, optim_g, optim_d, criterion, train_data
+    )
 
-# plot and save the generator and discriminator loss
-plt.figure()
-plt.plot(losses_g, label="Generator loss")
-plt.plot(losses_d, label="Discriminator Loss")
-plt.legend()
-plt.savefig("output/loss.png")
+    print("DONE TRAINING")
+    torch.save(generator.state_dict(), "output/generator.pth")
+
+    from .data_dumper import generate_gif
+
+    generate_gif(images)
