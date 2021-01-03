@@ -1,7 +1,6 @@
 """Main module."""
 import torch
 import torch.optim as optim
-import numpy as np
 import pretty_errors
 
 pretty_errors.configure(
@@ -25,9 +24,8 @@ if args.command == "geo":
 
     foo = mapper.geomapper("data/test.toml")
 
-
 if args.command == "train":
-    from .config import device,nz
+    from .config import device, nz
     from .model import Generator, Discriminator
     from .data_loader import train_data
 

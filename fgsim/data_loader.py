@@ -1,8 +1,6 @@
 import torchvision.transforms as transforms
 import torchvision.datasets as datasets
 
-from .config import *
-
 transform = transforms.Compose(
     [
         transforms.ToTensor(),
