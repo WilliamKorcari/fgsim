@@ -17,45 +17,56 @@ pretty_errors.configure(
 )
 
 
-from .cli import args
+def main():
+    from .cli import args
 
-if args.command == "geo":
-    from .geo import mapper
+    if args.command == "geo":
+        from .geo import mapper
 
-    foo = mapper.geomapper("data/test.toml")
+        _ = mapper.geomapper("data/test.toml")
+        import numpy as np
+        import geomapper as xt
 
-if args.command == "train":
-    from .config import device, nz
-    from .model import Generator, Discriminator
-    from .data_loader import train_data
+        v = np.arange(15).reshape(3, 5)
+        s = xt.sum_of_sines(v)
+        print(s)
 
-    generator = Generator(nz).to(device)
-    discriminator = Discriminator().to(device)
+    if args.command == "train":
+        from .config import device, nz
+        from .model import Generator, Discriminator
+        from .data_loader import train_data
 
-    print("##### GENERATOR #####")
-    print(generator)
-    print("######################")
+        generator = Generator(nz).to(device)
+        discriminator = Discriminator().to(device)
 
-    print("\n##### DISCRIMINATOR #####")
-    print(discriminator)
-    print("######################")
+        print("##### GENERATOR #####")
+        print(generator)
+        print("######################")
 
-    # optimizers
-    optim_g = optim.Adam(generator.parameters(), lr=0.0002)
-    optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
+        print("\n##### DISCRIMINATOR #####")
+        print(discriminator)
+        print("######################")
 
-    # loss function
-    criterion = torch.nn.BCELoss()
+        # optimizers
+        optim_g = optim.Adam(generator.parameters(), lr=0.0002)
+        optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
 
-    from .train import training_procedure
+        # loss function
+        criterion = torch.nn.BCELoss()
 
-    generator, discriminator, images = training_procedure(
-        generator, discriminator, optim_g, optim_d, criterion, train_data
-    )
+        from .train import training_procedure
 
-    print("DONE TRAINING")
-    torch.save(generator.state_dict(), "output/generator.pth")
+        generator, discriminator, images = training_procedure(
+            generator, discriminator, optim_g, optim_d, criterion, train_data
+        )
 
-    from .data_dumper import generate_gif
+        print("DONE TRAINING")
+        torch.save(generator.state_dict(), "output/generator.pth")
 
-    generate_gif(images)
+        from .data_dumper import generate_gif
+
+        generate_gif(images)
+
+
+if __name__ == "__main__":
+    main()
