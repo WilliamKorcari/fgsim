@@ -1,7 +1,7 @@
 """Main module."""
+import pretty_errors
 import torch
 import torch.optim as optim
-import pretty_errors
 
 pretty_errors.configure(
     separator_character="*",
@@ -25,6 +25,7 @@ def main():
 
         _ = mapper.geomapper("data/test.toml")
         import numpy as np
+
         import geomapper as xt
 
         v = np.arange(15).reshape(3, 5)
@@ -33,8 +34,8 @@ def main():
 
     if args.command == "train":
         from .config import device, nz
-        from .model import Generator, Discriminator
         from .data_loader import train_data
+        from .model import Discriminator, Generator
 
         generator = Generator(nz).to(device)
         discriminator = Discriminator().to(device)

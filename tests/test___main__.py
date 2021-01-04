@@ -2,8 +2,9 @@
 
 """Tests for `fgsim` package."""
 
-import pytest
 import importlib
+
+import pytest
 
 
 def importtest():

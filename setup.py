@@ -2,9 +2,10 @@
 
 """The setup script."""
 
-from setuptools import setup, find_packages, Extension
-from pybind11.setup_helpers import Pybind11Extension
 from glob import glob
+
+from pybind11.setup_helpers import Pybind11Extension
+from setuptools import Extension, find_packages, setup
 
 with open("docs/readme.rst") as readme_file:
     readme = readme_file.read()
@@ -36,8 +37,9 @@ extras = {
 }
 
 
-import numpy as np
 import os
+
+import numpy as np
 
 ext_modules = [
     Pybind11Extension(

@@ -1,8 +1,9 @@
-from .config import device, batch_size, sample_size, nz, epochs, k
 import torch
-from tqdm import tqdm
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid, save_image
+from tqdm import tqdm
+
+from .config import batch_size, device, epochs, k, nz, sample_size
 
 
 # to create real labels (1s)
