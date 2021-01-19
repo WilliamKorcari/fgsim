@@ -106,3 +106,5 @@ ENV/
 data/
 output/
 workspace.code-workspace
+out.png
+wd/
