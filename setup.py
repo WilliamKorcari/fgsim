@@ -1,11 +1,12 @@
-#!python
+#!/usr/bin/env python
 
 """The setup script."""
 
 from glob import glob
 
+import numpy as np
 from pybind11.setup_helpers import Pybind11Extension
-from setuptools import Extension, find_packages, setup
+from setuptools import find_packages, setup
 
 with open("docs/readme.rst") as readme_file:
     readme = readme_file.read()
@@ -36,11 +37,6 @@ extras = {
     ],
 }
 
-
-import os
-
-import numpy as np
-
 ext_modules = [
     Pybind11Extension(
         "geomapper",
@@ -54,7 +50,6 @@ ext_modules = [
         # extra_compile_args=["-std=c99", "-Wno-error=vla"],
     ),
 ]
-
 
 setup(
     author="Anonymous",

@@ -2,6 +2,8 @@
 import pretty_errors
 import torch
 import torch.optim as optim
+import sys
+import pretty_errors
 
 pretty_errors.configure(
     separator_character="*",
@@ -20,22 +22,30 @@ pretty_errors.configure(
 def main():
     from .cli import args
 
-    if args.command == "geo":
-        from .geo import mapper
+    # if args.command == "geo":
+    #     from .geo import mapper
 
-        _ = mapper.geomapper("data/test.toml")
-        import numpy as np
+    #     _ = mapper.geomapper("data/test.toml")
+    #     import numpy as np
 
-        import geomapper as xt
-
-        v = np.arange(15).reshape(3, 5)
-        s = xt.sum_of_sines(v)
-        print(s)
+    #     import geomapper as xt
 
     if args.command == "train":
+
+        # always reload the local modules
+        # so that
+        # `ipython >>> %run -m fgsim train`
+        # works
+        for modulename in [e for e in sys.modules if e.startswith("fgsim.")]:
+            del sys.modules[modulename]
+
         from .config import device, nz
-        from .data_loader import train_data
-        from .model import Discriminator, Generator
+        from .model import Generator, Discriminator
+        from .data_loader import hitarr, posD
+        from .geo.mapper import Geomapper
+
+        mapper = Geomapper(posD)
+        train_data = mapper.map(hitarr)
 
         generator = Generator(nz).to(device)
         discriminator = Discriminator().to(device)
@@ -69,5 +79,7 @@ def main():
         generate_gif(images)
 
 
-if __name__ == "__main__":
-    main()
+main()
+
+# if __name__ == "__main__":
+#     main()
