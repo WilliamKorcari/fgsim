@@ -5,6 +5,7 @@ from typing import List
 from .cli import args
 from collections import OrderedDict
 
+
 fn = f"wd/{args.tag}/train/ntupleTree.root"
 rf = uproot.open(fn)
 
@@ -19,6 +20,12 @@ xyz = ["recHit_x", "recHit_y", "recHit_z"]
 tmparrD = ga(xyz)
 posD = OrderedDict([(v, tmparrD[v]) for v in xyz])
 del tmparrD
+
+# this should be 'nevents * var * float32'
+assert all([str(posD[v].type).endswith(" * var * float32") for v in xyz])
+# same number of events
+assert len(posD[xyz[0]][0]) == len(posD[xyz[1]][0]) == len(posD[xyz[2]][0])
+
 
 # This yield a dict with 1dim ak arrays:
 # posD={"x": [
@@ -38,4 +45,10 @@ del tmparrD
 # <Array [[{x: 1, y: 4}], ... [{x: 3, y: 6}]] type='3 * var * {"x": int64, "y": in...'>
 # hitarr = ak.zip({v:posD[v][0] for v in xyz})
 #
-hitarr = ak.zip([posD[v][0] for v in xyz])
+
+
+eventarr = ak.zip({v: posD[v] for v in xyz})
+
+assert str(eventarr.type).endswith(
+    ' * var * {"recHit_x": float32, "recHit_y": float32, "recHit_z": float32}'
+)

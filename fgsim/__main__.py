@@ -1,9 +1,6 @@
 """Main module."""
 import pretty_errors
-import torch
-import torch.optim as optim
 import sys
-import pretty_errors
 
 pretty_errors.configure(
     separator_character="*",
@@ -41,12 +38,14 @@ def main():
 
         from .config import device, nz
         from .model import Generator, Discriminator
-        from .data_loader import hitarr, posD
+        from .data_loader import eventarr, posD
         from .geo.mapper import Geomapper
 
         mapper = Geomapper(posD)
-        train_data = mapper.map(hitarr)
+        train_data = mapper.map_events(eventarr)
 
+        import torch
+        import torch.optim as optim
         generator = Generator(nz).to(device)
         discriminator = Discriminator().to(device)
 

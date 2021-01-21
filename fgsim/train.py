@@ -81,11 +81,10 @@ def training_procedure(
     for epoch in range(epochs):
         loss_g = 0.0
         loss_d = 0.0
-        for bi, data in tqdm(
+        for bi, image in tqdm(
             enumerate(train_loader),
             total=int(len(train_data) / train_loader.batch_size),
         ):
-            image, _ = data
             image = image.to(device)
             b_size = len(image)
             # run the discriminator for k number of steps
