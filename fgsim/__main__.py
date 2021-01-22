@@ -32,10 +32,12 @@ def main():
         # so that
         # `ipython >>> %run -m fgsim train`
         # works
-        for modulename in [e for e in sys.modules if e.startswith("fgsim.")]:
+        for modulename in [
+            e for e in sys.modules if e.startswith("fgsim.") and "mapper" not in e
+        ]:
             del sys.modules[modulename]
 
-        from .config import device, nz
+        from .config import device, conf
         from .data_loader import eventarr, posD
         from .geo.mapper import Geomapper
         from .model import Discriminator, Generator
@@ -46,7 +48,7 @@ def main():
         import torch
         import torch.optim as optim
 
-        generator = Generator(nz).to(device)
+        generator = Generator(conf.model.gan.nz).to(device)
         discriminator = Discriminator().to(device)
 
         print("##### GENERATOR #####")
@@ -58,8 +60,8 @@ def main():
         print("######################")
 
         # optimizers
-        optim_g = optim.Adam(generator.parameters(), lr=0.0002)
-        optim_d = optim.Adam(discriminator.parameters(), lr=0.0002)
+        optim_g = optim.Adam(generator.parameters(), lr=conf.model.gan.lr)
+        optim_d = optim.Adam(discriminator.parameters(), lr=conf.model.gan.lr)
 
         # loss function
         criterion = torch.nn.BCELoss()
@@ -78,7 +80,7 @@ def main():
         generate_gif(images)
 
 
-main()
+# main()
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

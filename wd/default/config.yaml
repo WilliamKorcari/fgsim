@@ -1,0 +1,17 @@
+tag: default
+mapper:
+  threshold: 1e-02
+  nevents: 10
+  xyz: ['recHit_x', 'recHit_y', 'recHit_z']
+  shape: [5, 269, 254, 56]
+cores: 5
+train:
+  train_test_split: 0.2
+model:
+  gan:
+    batch_size : 512
+    epochs : 200
+    sample_size : 64  # fixed sample size
+    nz : 128  # latent vector size
+    k : 1  # number of steps to apply to the discriminator
+    lr : 0.0002

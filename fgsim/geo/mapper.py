@@ -6,7 +6,7 @@ import awkward as ak
 import numpy as np
 
 from ..config import conf
-from ..plot import plot3d, plot_z_pos
+# from ..plot import plot3d, plot_z_pos
 
 # from pprint import pprint
 # from itertools import combinations
@@ -36,14 +36,11 @@ class Geomapper:
         )
 
         # Debug code
-        arr = [ak.to_numpy(posD[v]) for v in conf.mapper.xyz]
-        plot3d(arr)
-
-        foo = np.column_stack(arr)
-
-        from ..utils import most_freq_zval
-
-        plot_z_pos(foo, most_freq_zval(posD))
+        # arr = [ak.to_numpy(posD[v]) for v in conf.mapper.xyz]
+        # plot3d(arr)
+        # foo = np.column_stack(arr)
+        # from ..utils import most_freq_zval
+        # plot_z_pos(foo, most_freq_zval(posD))
 
     def __cellaxis_to_binborders(self, cellpostions: np.ndarray) -> np.ndarray:
         # the binborders here are dont include a upper or lower bound

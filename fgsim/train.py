@@ -1,9 +1,12 @@
 import torch
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid, save_image
+import torch.autograd.profiler as profiler
 from tqdm import tqdm
+from contextlib import nullcontext
 
-from .config import batch_size, device, epochs, k, nz, sample_size
+# from .config import batch_size, device, epochs, k, nz, sample_size
+from .config import conf, device
 
 
 # to create real labels (1s)
@@ -68,55 +71,65 @@ def train_generator(generator, discriminator, optimizer, criterion, data_fake):
 def training_procedure(
     generator, discriminator, optim_g, optim_d, criterion, train_data
 ):
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-    # create the noise vector
-    noise = create_noise(sample_size, nz)
-    losses_g = []  # to store generator loss after each epoch
-    losses_d = []  # to store discriminator loss after each epoch
-    images = []  # to store images generatd by the generator
+    # Make the configuration locally available
+    batch_size, epochs, k, nz, sample_size = (
+        conf.model.gan[x] for x in ["batch_size", "epochs", "k", "nz", "sample_size"]
+    )
+    with nullcontext():
+        train_loader = DataLoader(train_data, batch_size=2, shuffle=True)
+        # create the noise vector
+        noise = create_noise(sample_size, nz)
+        losses_g = []  # to store generator loss after each epoch
+        losses_d = []  # to store discriminator loss after each epoch
+        images = []  # to store images generatd by the generator
 
-    generator.train()
-    discriminator.train()
+        generator.train()
+        discriminator.train()
 
-    for epoch in range(epochs):
-        loss_g = 0.0
-        loss_d = 0.0
-        for bi, image in tqdm(
-            enumerate(train_loader),
-            total=int(len(train_data) / train_loader.batch_size),
-        ):
-            image = image.to(device)
-            b_size = len(image)
-            # run the discriminator for k number of steps
-            for _ in range(k):
-                data_fake = generator(create_noise(b_size, nz)).detach()
-                data_real = image
-                # train the discriminator network
-                loss_d += train_discriminator(
-                    discriminator, optim_d, criterion, data_real, data_fake
-                )
-            data_fake = generator(create_noise(b_size, nz))
-            # train the generator network
-            loss_g += train_generator(
-                generator, discriminator, optim_g, criterion, data_fake
+        for epoch in range(epochs):
+            loss_g = 0.0
+            loss_d = 0.0
+            for bi, image in tqdm(
+                enumerate(train_loader),
+                total=int(len(train_data) / train_loader.batch_size),
+            ):
+                with profiler.profile(profile_memory=True, record_shapes=True) as prof:
+                    image = image.to(device)
+                    b_size = len(image)
+
+                    # run the discriminator for k number of steps
+                    for _ in range(k):
+                        data_fake = generator(create_noise(b_size, nz)).detach()
+                        data_real = image
+                        # train the discriminator network
+                        loss_d += train_discriminator(
+                            discriminator, optim_d, criterion, data_real, data_fake
+                        )
+                    data_fake = generator(create_noise(b_size, nz))
+                    # train the generator network
+                    loss_g += train_generator(
+                        generator, discriminator, optim_g, criterion, data_fake
+                    )
+            print(prof.key_averages().table(sort_by="cpu_memory_usage", row_limit=10))
+            # create the final fake image for the epoch
+            generated_img = generator(noise).cpu().detach()
+            #shape : sample_size * x * y *z
+
+            # make the images as grid
+            # generated_img = make_grid(generated_img)
+            # save the generated torch tensor models to disk (img 1, 7)
+            if epoch % 10 ==0:
+                save_generator_image(generated_img[0,:,:,7], f"wd/{conf.tag}/gen_img{epoch}.png")
+            images.append(generated_img)
+            epoch_loss_g = loss_g / bi  # total generator loss for the epoch
+            epoch_loss_d = loss_d / bi  # total discriminator loss for the epoch
+            losses_g.append(epoch_loss_g)
+            losses_d.append(epoch_loss_d)
+
+            print(f"Epoch {epoch} of {epochs}")
+            print(
+                f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}"
             )
-
-        # create the final fake image for the epoch
-        generated_img = generator(noise).cpu().detach()
-        # make the images as grid
-        generated_img = make_grid(generated_img)
-        # save the generated torch tensor models to disk
-        save_generator_image(generated_img, f"output/gen_img{epoch}.png")
-        images.append(generated_img)
-        epoch_loss_g = loss_g / bi  # total generator loss for the epoch
-        epoch_loss_d = loss_d / bi  # total discriminator loss for the epoch
-        losses_g.append(epoch_loss_g)
-        losses_d.append(epoch_loss_d)
-
-        print(f"Epoch {epoch} of {epochs}")
-        print(
-            f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}"
-        )
 
     from matplotlib import pyplot as plt
 
