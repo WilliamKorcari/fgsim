@@ -1,8 +1,10 @@
-from typing import Tuple
-import awkward as ak
-import numpy as np
 from collections import OrderedDict
 from multiprocessing import Pool
+from typing import Tuple
+
+import awkward as ak
+import numpy as np
+
 from ..config import conf
 from ..plot import plot3d, plot_z_pos
 

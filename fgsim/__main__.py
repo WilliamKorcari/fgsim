@@ -1,6 +1,7 @@
 """Main module."""
-import pretty_errors
 import sys
+
+import pretty_errors
 
 pretty_errors.configure(
     separator_character="*",
@@ -21,10 +22,8 @@ def main():
 
     # if args.command == "geo":
     #     from .geo import mapper
-
     #     _ = mapper.geomapper("data/test.toml")
     #     import numpy as np
-
     #     import geomapper as xt
 
     if args.command == "train":
@@ -37,15 +36,16 @@ def main():
             del sys.modules[modulename]
 
         from .config import device, nz
-        from .model import Generator, Discriminator
         from .data_loader import eventarr, posD
         from .geo.mapper import Geomapper
+        from .model import Discriminator, Generator
 
         mapper = Geomapper(posD)
         train_data = mapper.map_events(eventarr)
 
         import torch
         import torch.optim as optim
+
         generator = Generator(nz).to(device)
         discriminator = Discriminator().to(device)
 

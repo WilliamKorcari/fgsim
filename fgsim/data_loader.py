@@ -1,10 +1,11 @@
-import uproot
-import numpy as np
-import awkward as ak
-from typing import List
-from .cli import args
 from collections import OrderedDict
+from typing import List
 
+import awkward as ak
+import numpy as np
+import uproot
+
+from .cli import args
 
 fn = f"wd/{args.tag}/train/ntupleTree.root"
 rf = uproot.open(fn)

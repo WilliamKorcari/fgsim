@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+
 from .config import conf
 
 
@@ -18,5 +19,5 @@ def plot_z_pos(foo, zval):
     ax = fig.add_subplot()
 
     arr = foo[foo[..., 2] == zval]
-    ax.scatter(arr[:,0],arr[:,1])
+    ax.scatter(arr[:, 0], arr[:, 1])
     fig.savefig(f"wd/{conf.tag}/plot_posD_2d.png")

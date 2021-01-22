@@ -1,4 +1,5 @@
 from omegaconf import OmegaConf
+
 from .cli import args
 
 # learning parameters
@@ -11,11 +12,12 @@ k = 1  # number of steps to apply to the discriminator
 
 def get_device():
     import torch
+
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 device = get_device()
 
 
-with open(f"wd/{args.tag}/config.yaml","r") as fp:
+with open(f"wd/{args.tag}/config.yaml", "r") as fp:
     conf = OmegaConf.load(fp)

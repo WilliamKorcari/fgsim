@@ -3,8 +3,6 @@ import numpy as np
 import torchvision.transforms as transforms
 
 
-
-
 def generate_gif(images):
     # save the generated images as GIF file
     to_pil_image = transforms.ToPILImage()
