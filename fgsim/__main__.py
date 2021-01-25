@@ -18,6 +18,14 @@ pretty_errors.configure(
 
 
 def main():
+    # always reload the local modules
+    # so that
+    # `ipython >>> %run -m fgsim train`
+    # works
+    for modulename in [
+        e for e in sys.modules if e.startswith("fgsim.") and "mapper" not in e
+    ]:
+        del sys.modules[modulename]
     from .cli import args
 
     # if args.command == "geo":
@@ -27,57 +35,10 @@ def main():
     #     import geomapper as xt
 
     if args.command == "train":
+        from .train.control import traincac
 
-        # always reload the local modules
-        # so that
-        # `ipython >>> %run -m fgsim train`
-        # works
-        for modulename in [
-            e for e in sys.modules if e.startswith("fgsim.") and "mapper" not in e
-        ]:
-            del sys.modules[modulename]
-
-        from .config import device, conf
-        from .data_loader import eventarr, posD
-        from .geo.mapper import Geomapper
-        from .model import Discriminator, Generator
-
-        mapper = Geomapper(posD)
-        train_data = mapper.map_events(eventarr)
-
-        import torch
-        import torch.optim as optim
-
-        generator = Generator(conf.model.gan.nz).to(device)
-        discriminator = Discriminator().to(device)
-
-        print("##### GENERATOR #####")
-        print(generator)
-        print("######################")
-
-        print("\n##### DISCRIMINATOR #####")
-        print(discriminator)
-        print("######################")
-
-        # optimizers
-        optim_g = optim.Adam(generator.parameters(), lr=conf.model.gan.lr)
-        optim_d = optim.Adam(discriminator.parameters(), lr=conf.model.gan.lr)
-
-        # loss function
-        criterion = torch.nn.BCELoss()
-
-        from .train import training_procedure
-
-        generator, discriminator, images = training_procedure(
-            generator, discriminator, optim_g, optim_d, criterion, train_data
-        )
-
-        print("DONE TRAINING")
-        torch.save(generator.state_dict(), "output/generator.pth")
-
-        from .data_dumper import generate_gif
-
-        generate_gif(images)
+        t = traincac()
+        t.run_training()
 
 
 # main()

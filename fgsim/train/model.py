@@ -1,7 +1,8 @@
-import torch.nn as nn
-from .config import conf
 from functools import reduce
 
+import torch.nn as nn
+
+from ..config import conf
 
 imgpixels = reduce(lambda a, b: a * b, conf["mapper"]["shape"][1:4])
 
