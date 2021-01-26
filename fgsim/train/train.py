@@ -1,9 +1,9 @@
-import torch
+import gc
 
+import torch
 # import torch.autograd.profiler as profiler
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
-import gc
 from tqdm import tqdm
 
 from ..config import conf, device
@@ -133,10 +133,8 @@ def training_procedure(c: traincac):
             memReport()
             print(f"memory used: {c.metrics['memory']}")
 
-        print(f"Epoch { c.metrics['epoch'] } of {n_epochs}")
-        print(
-            f"Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}"
-        )
+        print(f"Epoch { c.metrics['epoch'] }/{n_epochs}: Generator loss: {epoch_loss_g:.8f}, Discriminator loss: {epoch_loss_d:.8f}")
+
         # Crash if there is a memory bug
         if memory_used > 25:
             from sys import exit
@@ -158,8 +156,9 @@ def training_procedure(c: traincac):
 if conf["loglevel"] > 0:
     import os
     import sys
-    import psutil
     from pprint import pprint
+
+    import psutil
 
     def memReport():
         for obj in gc.get_objects():

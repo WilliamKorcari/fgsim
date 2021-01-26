@@ -6,8 +6,8 @@ import torch.optim as optim
 from ..config import conf, device
 from ..data_loader import eventarr, posD
 from ..geo.mapper import Geomapper
-from .model import Discriminator, Generator
 from ..utils import count_parameters
+from .model import Discriminator, Generator
 
 
 class traincac:
