@@ -41,7 +41,5 @@ def main():
         t.run_training()
 
 
-# main()
-
 if __name__ == "__main__":
     main()
