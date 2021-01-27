@@ -33,7 +33,11 @@ class Geomapper:
             for v in conf.mapper.xyz
         }
         with open(f"wd/{conf.tag}/binbordes.yaml", "w") as f:
-            yaml.dump(self.binbordersD, f, Dumper=yaml.SafeDumper)
+            yaml.dump(
+                {v: self.binbordersD[v].tolist() for v in self.binbordersD},
+                f,
+                Dumper=yaml.SafeDumper,
+            )
         # setup the empty image of the caloriment to copy
         self.emptycaloarr = np.zeros(
             [len(self.binbordersD[v]) + 1 for v in conf.mapper.xyz]

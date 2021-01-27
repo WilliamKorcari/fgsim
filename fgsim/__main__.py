@@ -37,14 +37,16 @@ def main():
     if args.command == "train":
         from .train.holder import modelHolder
         from .train.train import training_procedure
+
         m = modelHolder()
         training_procedure(m)
 
-    if args.command == "predict":
+    if args.command == "generate":
         from .train.holder import modelHolder
-        from .train.predict import prediction_procedure
+        from .train.generate import generation_procedure
+
         m = modelHolder()
-        prediction_procedure(m)
+        generation_procedure(m)
 
 
 if __name__ == "__main__":

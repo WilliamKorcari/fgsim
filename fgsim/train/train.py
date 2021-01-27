@@ -1,14 +1,13 @@
 import gc
 
 import torch
-
 # import torch.autograd.profiler as profiler
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from ..config import conf, device
-from ..utils import memReport, memGB
 from ..plot import plotlosses
+from ..utils import memGB, memReport
 from .holder import modelHolder
 
 
@@ -77,7 +76,9 @@ def training_procedure(c: modelHolder):
     # Initialize the training
     c.generator.train()
     c.discriminator.train()
+    print(f"Starting with epoch {c.metrics['epoch'] + 1}")
 
+    # Iterate over the Epochs
     for c.metrics["epoch"] in range(c.metrics["epoch"] + 1, n_epochs):
         loss_g = 0.0
         loss_d = 0.0
