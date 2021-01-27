@@ -35,10 +35,16 @@ def main():
     #     import geomapper as xt
 
     if args.command == "train":
-        from .train.control import traincac
+        from .train.holder import modelHolder
+        from .train.train import training_procedure
+        m = modelHolder()
+        training_procedure(m)
 
-        t = traincac()
-        t.run_training()
+    if args.command == "predict":
+        from .train.holder import modelHolder
+        from .train.predict import prediction_procedure
+        m = modelHolder()
+        prediction_procedure(m)
 
 
 if __name__ == "__main__":

@@ -21,3 +21,14 @@ def plot_z_pos(foo, zval):
     arr = foo[foo[..., 2] == zval]
     ax.scatter(arr[:, 0], arr[:, 1])
     fig.savefig(f"wd/{conf.tag}/plot_posD_2d.png")
+
+
+def plotlosses(losses_g, losses_d):
+    from matplotlib import pyplot as plt
+
+    # plot and save the generator and discriminator loss
+    plt.figure()
+    plt.plot(losses_g, label="Generator loss")
+    plt.plot(losses_d, label="Discriminator Loss")
+    plt.legend()
+    plt.savefig(f"wd/{conf.tag}/loss.png")

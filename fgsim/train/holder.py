@@ -10,7 +10,7 @@ from ..utils import count_parameters
 from .model import Discriminator, Generator
 
 
-class traincac:
+class modelHolder:
     def __init__(self) -> None:
         mapper = Geomapper(posD)
         self.train_data = torch.tensor(mapper.map_events(eventarr))
@@ -67,3 +67,5 @@ class traincac:
 
         print("DONE TRAINING")
         torch.save(self.generator.state_dict(), "output/generator.pth")
+    
+
