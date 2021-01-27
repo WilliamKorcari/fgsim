@@ -41,7 +41,7 @@ class modelHolder:
         self.generator.eval()
         self.optim_d.load_state_dict(checkpoint["optim_d"])
         self.optim_g.load_state_dict(checkpoint["optim_g"])
-        self.metrics = checkpoint.metrics
+        self.metrics = checkpoint["metrics"]
 
     def save_model(self):
         # move the old checkpoint
@@ -67,5 +67,3 @@ class modelHolder:
 
         print("DONE TRAINING")
         torch.save(self.generator.state_dict(), "output/generator.pth")
-    
-
