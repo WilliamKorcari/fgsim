@@ -4,6 +4,7 @@ from typing import Tuple
 
 import awkward as ak
 import numpy as np
+import yaml
 
 from ..config import conf
 
@@ -31,6 +32,8 @@ class Geomapper:
             v: self.__cellaxis_to_binborders(self.cells_on_axis[v])
             for v in conf.mapper.xyz
         }
+        with open(f"wd/{conf.tag}/binbordes.yaml", "w") as f:
+            yaml.dump(self.binbordersD, f, Dumper=yaml.SafeDumper)
         # setup the empty image of the caloriment to copy
         self.emptycaloarr = np.zeros(
             [len(self.binbordersD[v]) + 1 for v in conf.mapper.xyz]
