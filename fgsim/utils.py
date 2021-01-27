@@ -1,6 +1,7 @@
-from collections import OrderedDict
 import os
 import sys
+from collections import OrderedDict
+
 from .config import conf
 
 
@@ -16,6 +17,7 @@ def count_parameters(model):
     from prettytable import PrettyTable
 
     table = PrettyTable(["Modules", "Parameters"])
+    table.align["Parameters"] = "l"
     total_params = 0
     for name, parameter in model.named_parameters():
         if not parameter.requires_grad:
@@ -29,8 +31,9 @@ def count_parameters(model):
 
 
 def memReport():
-    from pprint import pprint
     import gc
+    from pprint import pprint
+
     import torch
 
     for obj in gc.get_objects():
