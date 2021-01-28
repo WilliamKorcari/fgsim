@@ -2,10 +2,10 @@
 
 """The setup script."""
 
-from glob import glob
-
-import numpy as np
-from pybind11.setup_helpers import Pybind11Extension
+# needed for build the cpp extension
+# from glob import glob
+# import numpy as np
+# from pybind11.setup_helpers import Pybind11Extension
 from setuptools import find_packages, setup
 
 with open("docs/readme.rst") as readme_file:
@@ -18,19 +18,35 @@ with open("docs/history.rst") as history_file:
 setup_requirements = ["pybind11==2.6.1", "numpy==1.19.4"]
 install_requirements = [
     "pybind11==2.6.1",
-    "numpy==1.19.4",
     "wheel==0.33.6",
-    "pretty_errors==1.2.19",
+    "bump2version==0.5.11",
+    "awkward==1.0.1",
+    "flake8==3.8.4",
+    "ipython==7.19.0",
+    "isort==5.7.0",
+    "jedi==0.17.2",
+    "jupyter==1.0.0",
+    "matplotlib==3.3.3",
+    "neovim==0.3.1",
+    "numba==0.52.0",
+    "numpy==1.19.5",
+    "omegaconf==2.0.6",
+    "pretty-errors==1.2.19",
+    "prettytable==2.0.0",
+    "pybind11==2.6.1",
+    "pylint==2.6.0",
+    "pynvim==0.4.2",
+    "PyYAML==5.4",
     "torch==1.7.1",
     "torchvision==0.8.2",
-    "imageio==2.9.0",
-    "bump2version==0.5.11",
+    "tox==3.21.1",
+    "tqdm==4.56.0",
+    "uproot==4.0.0",
+    "uproot3==3.14.2",
 ]
 
 extras = {
     "test": [
-        "tox==3.14.0",
-        "tox-wheel==0.6.0",
         "pytest==4.6.5",
         "pytest-runner==5.1",
         "coverage==5.3.1",
@@ -38,17 +54,17 @@ extras = {
 }
 
 ext_modules = [
-    Pybind11Extension(
-        "geomapper",
-        sources=sorted(glob("fgsim/geo/*.cpp")),
-        include_dirs=[
-            np.get_include(),
-            "fgsim/geo/libs/xtensor/include",
-            "fgsim/geo/libs/xtensor-python/include",
-            "fgsim/geo/libs/xtl/include",
-        ]
-        # extra_compile_args=["-std=c99", "-Wno-error=vla"],
-    ),
+    # Pybind11Extension(
+    #     "geomapper",
+    #     sources=sorted(glob("fgsim/geo/*.cpp")),
+    #     include_dirs=[
+    #         np.get_include(),
+    #         "fgsim/geo/libs/xtensor/include",
+    #         "fgsim/geo/libs/xtensor-python/include",
+    #         "fgsim/geo/libs/xtl/include",
+    #     ],
+    #     extra_compile_args=["-std=c99", "-Wno-error=vla"],
+    # ),
 ]
 
 setup(
