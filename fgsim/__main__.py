@@ -42,8 +42,8 @@ def main():
         training_procedure(m)
 
     if args.command == "generate":
-        from .train.holder import modelHolder
         from .train.generate import generation_procedure
+        from .train.holder import modelHolder
 
         m = modelHolder()
         generation_procedure(m)

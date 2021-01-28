@@ -28,16 +28,23 @@ class Geomapper:
         self.cells_on_axis = OrderedDict()
         for v in conf.mapper.xyz:
             self.cells_on_axis[v] = self.__compute_cells_on_axis(self.flatposD[v])
+        with open(f"wd/{conf.tag}/cellpos.yaml", "w") as f:
+            yaml.dump(
+                {v: self.cells_on_axis[v].tolist() for v in self.cells_on_axis},
+                f,
+                Dumper=yaml.SafeDumper,
+            )
+
         self.binbordersD = {
             v: self.__cellaxis_to_binborders(self.cells_on_axis[v])
             for v in conf.mapper.xyz
         }
-        with open(f"wd/{conf.tag}/binbordes.yaml", "w") as f:
-            yaml.dump(
-                {v: self.binbordersD[v].tolist() for v in self.binbordersD},
-                f,
-                Dumper=yaml.SafeDumper,
-            )
+        # with open(f"wd/{conf.tag}/binbordes.yaml", "w") as f:
+        #     yaml.dump(
+        #         {v: self.binbordersD[v].tolist() for v in self.binbordersD},
+        #         f,
+        #         Dumper=yaml.SafeDumper,
+        #     )
         # setup the empty image of the caloriment to copy
         self.emptycaloarr = np.zeros(
             [len(self.binbordersD[v]) + 1 for v in conf.mapper.xyz]
@@ -159,7 +166,7 @@ class Geomapper:
     def __getpixel(self, val: ak.Array, var: str) -> np.int:
         val = ak.to_numpy(val)
         border = self.binbordersD[var]
-        pos = np.digitize(val, border)
+        pos = np.digitize(val, border) - 1
         return pos
 
     def __map_hit_to_idx(self, hit: ak.Array) -> Tuple:

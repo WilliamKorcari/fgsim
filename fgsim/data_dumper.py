@@ -1,9 +1,11 @@
 # Uproot4 is yet to implement writing...
+from collections import OrderedDict
+
 import awkward as ak
 import numpy as np
 import uproot3 as uproot
+
 from .config import conf
-from collections import OrderedDict
 
 # import imageio
 # import numpy as np
@@ -28,4 +30,6 @@ def dump_generated_events(arr: ak.Array):
     with uproot.recreate(fn) as file:
         file["tree1"] = uproot.newtree(branchD)
         for branch in branchD:
-            file["tree1"].extend({branch: ak0_array[branch], "n": ak0_array[branch].counts})
+            file["tree1"].extend(
+                {branch: ak0_array[branch], "n": ak0_array[branch].counts}
+            )

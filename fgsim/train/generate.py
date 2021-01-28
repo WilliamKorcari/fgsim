@@ -1,6 +1,8 @@
-from torchvision.utils import save_image
+# from torchvision.utils import save_image
 
 from ..config import conf
+from ..data_dumper import dump_generated_events
+from ..geo.mapback import mapBack
 from .holder import modelHolder
 from .train import create_noise
 
@@ -11,9 +13,15 @@ def generation_procedure(c: modelHolder):
         sample_size=conf["predict"]["nevents"], nz=conf["model"]["gan"]["nz"]
     )
     # create the final fake image for the epoch
-    generated_img = c.generator(noise).cpu().detach()
+    genEvents = c.generator(noise).cpu().detach()
+    print("Generation done")
     # shape : sample_size * x * y *z
+    mapper = mapBack()
+    print("Mapper setup done")
+    arr = mapper.map_events(genEvents)
+    print("Mapping done")
+    dump_generated_events(arr)
 
-    save_image(
-        generated_img[0, :, :, 7], f"wd/{conf.tag}/gen_img{c.metrics['epoch']}.png"
-    )
+    # save_image(
+    #     genEvents[0, :, :, 7], f"wd/{conf.tag}/gen_img{c.metrics['epoch']}.png"
+    # )

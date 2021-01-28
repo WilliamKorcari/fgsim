@@ -13,6 +13,20 @@ def most_freq_zval(posD: OrderedDict):
     return zval
 
 
+def timing_val(func):
+    import time
+
+    def wrapper(*arg, **kw):
+        """source: http://www.daniweb.com/code/snippet368.html"""
+        t1 = time.time()
+        res = func(*arg, **kw)
+        t2 = time.time()
+        print(func.__name__, t2 - t1)
+        return (res,)
+
+    return wrapper
+
+
 def count_parameters(model):
     from prettytable import PrettyTable
 
