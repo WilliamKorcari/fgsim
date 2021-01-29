@@ -4,7 +4,7 @@ import torch.nn as nn
 
 from ..config import conf
 
-imgpixels = reduce(lambda a, b: a * b, conf["mapper"]["shape"][1:4])
+imgpixels = reduce(lambda a, b: a * b, conf["mapper"]["calo_img_shape"])
 
 
 class Generator(nn.Module):
@@ -25,8 +25,7 @@ class Generator(nn.Module):
     def forward(self, x):
         # change the shape of the output to the shape of the calorimeter image
         # the first dimension = number of events is inferred by the -1 value
-        return self.main(x).view(-1, *conf["mapper"]["shape"][1:]).float()
-        # return(self.main(x).view(-1,*conf["mapper"]["shape"][1:]))
+        return self.main(x).view(-1, *conf["mapper"]["calo_img_shape"]).float()
 
 
 class Discriminator(nn.Module):

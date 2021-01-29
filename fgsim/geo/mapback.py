@@ -1,21 +1,20 @@
-# from multiprocessing import Pool
+from multiprocessing import Pool
+from typing import OrderedDict
 
-# Uproot4 is yet to implement writing...
 import awkward as ak
 import numpy as np
 import yaml
 
 # from numba import jit
 from tqdm import tqdm
-from multiprocessing import Pool
 
 from ..config import conf
 from ..utils import timing_val
 
 
-def get_idxs_under_threshold(arr: np.array):
+def get_idxs_under_threshold(arr: np.array) -> np.array:
     arr = np.argwhere(np.abs(arr) < conf["mapper"]["energy_threshold"]).T
-    return arr[:min(len(arr), 5000)]
+    return arr[: min(len(arr), 5000)]
 
 
 class mapBack:
@@ -31,18 +30,18 @@ class mapBack:
         # Get the indices with entries over the energy threshold
         # idxs=np.array(np.where(abs(caloimg) < conf["mapper"]["energy_threshold"])).T
         idxs = get_idxs_under_threshold(caloimg)
-        outD = {}
+        outD = OrderedDict()
         outD["eventNumber"] = np.repeat(eventNumber, len(idxs))
         for coordinate in self.xyz:
             outD[coordinate] = []
         outD["energy"] = []
 
-        # for idx in tqdm(idxs):
         for idx in idxs:
             for coordinate, i in zip(self.xyz, idx):
                 outD[coordinate].append(self.cellposD[coordinate][i])
             outD["energy"].append(caloimg[tuple(idx)].item())
-        return ak.Array(outD)
+        arr = ak.Array(outD)
+        return(arr)
 
     @timing_val
     def _map_calo_to_hitsMbuilderRec(self, eventNumber: int, caloimg) -> ak.Array:
@@ -50,6 +49,8 @@ class mapBack:
         builder = ak.ArrayBuilder()
         for idx in idxs:
             builder.begin_record()
+            builder.field("eventNumber")
+            builder.integer(eventNumber)
             for coordinate, i in zip(self.xyz, idx):
                 builder.field(coordinate)
                 builder.real(self.cellposD[coordinate][i])
@@ -57,40 +58,41 @@ class mapBack:
             # idx is a tensor here, to get the positon, it needs to be converted to a tuple
             builder.field("energy")
             builder.real(caloimg[tuple(idx)].item())
-            builder.field("eventNumber")
-            builder.integer(eventNumber)
             builder.end_record()
+        arr = builder.snapshot()
+        return(arr)
 
-        return ak.zip(builder.snapshot())
-    
     @timing_val
     def _map_calo_to_hitsMbuilderList(self, eventNumber: int, caloimg) -> ak.Array:
         idxs = get_idxs_under_threshold(caloimg)
         builder = ak.ArrayBuilder()
 
-        builder.begin_record("eventNumber")
+        builder.begin_record()
+        builder.field("eventNumber")
         builder.begin_list()
         for idx in idxs:
-            builder.append(eventNumber)
+            builder.integer(eventNumber)
         builder.end_list()
         builder.end_record()
 
-        for coordinate in set(self.xyz):
-            builder.begin_record(coordinate)
+        for i, coordinate in enumerate(self.xyz):
+            builder.begin_record()
+            builder.field(coordinate)
             builder.begin_list()
             for idx in idxs:
-                builder.append(self.cellposD[coordinate][idx])
+                builder.append(self.cellposD[coordinate][idx[i]])
             builder.end_list()
             builder.end_record()
 
-        builder.begin_record("energy")
+        builder.begin_record()
+        builder.field("energy")
         builder.begin_list()
         for idx in idxs:
             builder.append(caloimg[tuple(idx)].item())
         builder.end_list()
         builder.end_record()
 
-        return builder.snapshot()
+        return(builder.snapshot())
 
     def map_events(self, events) -> ak.Array:
         # builder = ak.ArrayBuilder()
@@ -99,32 +101,39 @@ class mapBack:
         #     self._map_calo_to_hits(i, events[i], builder)
         #     builder.end_list()
         # arr = builder.snapshot()
+        print(f"map_event shape {events.shape}")
         collD = {"eventNumber": [], "energy": []}
         for coordinate in self.xyz:
             collD[coordinate] = []
 
         nevents = len(events)
-        with Pool(5) as p:
-            # r = list(
-            #     tqdm(
-            #         p.starmap(
-            #             self._map_calo_to_hits,
-            #             zip(range(nevents), events),
-            #         ), total=nevents
-            #     )
-            # )
-            r = list(
-                p.starmap(
-                    self._map_calo_to_hits,
-                    zip(range(nevents), events),
-                )
-            )
-        for fct in (self._map_calo_to_hitsMListDict, self._map_calo_to_hitsMbuilderList, self._map_calo_to_hitsMbuilderRec):
+        # with Pool(5) as p:
+        # r = list(
+        #     tqdm(
+        #         p.starmap(
+        #             self._map_calo_to_hits,
+        #             zip(range(nevents), events),
+        #         ), total=nevents
+        #     )
+        # )
+        # r = list(
+        #     p.starmap(
+        #         self._map_calo_to_hits,
+        #         zip(range(nevents), events),
+        #     )
+        # )
+        for fct in (
+            self._map_calo_to_hitsMListDict,
+            self._map_calo_to_hitsMbuilderList,
+            self._map_calo_to_hitsMbuilderRec,
+        ):
             print(fct.__name__)
             for eventNumber, caloimg in zip(range(nevents), events):
                 arr = fct(eventNumber, caloimg)
+                assert set(arr.fields) == {'eventNumber','recHit_x', 'recHit_y', 'recHit_z', 'energy'}
+                print(arr)
                 break
-        
+
         # r is a list( ak arrays ({hit_x: [] }) )
         raise Exception
         # Collect the values in columns

@@ -14,4 +14,6 @@ device = get_device()
 
 
 with open(f"wd/{args.tag}/config.yaml", "r") as fp:
-    conf = OmegaConf.load(fp)
+    fileconf = OmegaConf.load(fp)
+
+conf = OmegaConf.merge(vars(args), fileconf)

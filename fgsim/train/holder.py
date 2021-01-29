@@ -31,7 +31,7 @@ class modelHolder:
         self.load_checkpoint()
 
     def load_checkpoint(self):
-        if not os.path.isfile(self.checkpoint_path):
+        if not os.path.isfile(self.checkpoint_path) or conf["dump_model"]:
             return
         checkpoint = torch.load(self.checkpoint_path)
 

@@ -25,37 +25,24 @@ class Geomapper:
             posD[v] = self.__redArray(posD[v])
         self.flatposD = posD
 
-        self.cells_on_axis = OrderedDict()
+        self.cell_posD = OrderedDict()
         for v in conf.mapper.xyz:
-            self.cells_on_axis[v] = self.__compute_cells_on_axis(self.flatposD[v])
+            self.cell_posD[v] = self.__compute_cell_posD(self.flatposD[v])
         with open(f"wd/{conf.tag}/cellpos.yaml", "w") as f:
             yaml.dump(
-                {v: self.cells_on_axis[v].tolist() for v in self.cells_on_axis},
+                {v: self.cell_posD[v].tolist() for v in self.cell_posD},
                 f,
                 Dumper=yaml.SafeDumper,
             )
 
         self.binbordersD = {
-            v: self.__cellaxis_to_binborders(self.cells_on_axis[v])
-            for v in conf.mapper.xyz
+            v: self.__cellaxis_to_binborders(self.cell_posD[v]) for v in conf.mapper.xyz
         }
-        # with open(f"wd/{conf.tag}/binbordes.yaml", "w") as f:
-        #     yaml.dump(
-        #         {v: self.binbordersD[v].tolist() for v in self.binbordersD},
-        #         f,
-        #         Dumper=yaml.SafeDumper,
-        #     )
-        # setup the empty image of the caloriment to copy
-        self.emptycaloarr = np.zeros(
-            [len(self.binbordersD[v]) + 1 for v in conf.mapper.xyz]
-        )
 
-        # Debug code
-        # arr = [ak.to_numpy(posD[v]) for v in conf.mapper.xyz]
-        # plot3d(arr)
-        # foo = np.column_stack(arr)
-        # from ..utils import most_freq_zval
-        # plot_z_pos(foo, most_freq_zval(posD))
+        caloimg_shape = [len(self.cell_posD[v]) for v in conf.mapper.xyz]
+        assert conf["mapper"]["calo_img_shape"] == caloimg_shape
+
+        self.emptycaloarr = np.zeros(caloimg_shape)
 
     def __cellaxis_to_binborders(self, cellpostions: np.ndarray) -> np.ndarray:
         # the binborders here are dont include a upper or lower bound
@@ -73,7 +60,7 @@ class Geomapper:
         return ak.flatten(ak.Array(arr))
 
     # This returns the grid of the cells anlong the given axis
-    def __compute_cells_on_axis(self, arr: ak.Array) -> np.ndarray:
+    def __compute_cell_posD(self, arr: ak.Array) -> np.ndarray:
         # Convert to numpy array
         arr = ak.to_numpy(arr, allow_missing=False)
 
@@ -166,7 +153,9 @@ class Geomapper:
     def __getpixel(self, val: ak.Array, var: str) -> np.int:
         val = ak.to_numpy(val)
         border = self.binbordersD[var]
-        pos = np.digitize(val, border) - 1
+        pos = np.digitize(val, border)
+        assert 0 <= pos
+        assert pos < len(self.cell_posD[var])
         return pos
 
     def __map_hit_to_idx(self, hit: ak.Array) -> Tuple:
@@ -182,18 +171,11 @@ class Geomapper:
         return calo
 
     def map_events(self, eventarr: ak.Array) -> np.ndarray:
-        # caloimgL = [self.__map_event_to_calo(hitsA) for hitsA in eventarr]
-        with Pool(5) as p:
-            caloimgL = p.map(self._map_event_to_calo, eventarr)
-
-        # if (
-        #     len(np.unique(caloimgL[0][3, :, 4])) == 1
-        #     and np.unique(caloimgL[0][3, :, 4])[0] != 0
-        # ):
-        #     raise Exception
-        # from ..utils import most_freq_zval
-        # zidx = np.digitize(most_freq_zval(self.flatposD), self.binbordersD["recHit_z"])
-        # writeimage(caloimgL[0][..., zidx], f"wd/{conf.tag}/layer{zidx}.png")
+        if conf["debug"]:
+            caloimgL = [self._map_event_to_calo(hitsA) for hitsA in eventarr]
+        else:
+            with Pool(5) as p:
+                caloimgL = p.map(self._map_event_to_calo, eventarr)
         return np.stack(caloimgL, axis=0)
 
 

@@ -27,8 +27,8 @@ def main():
     do_not_reload = {
         # Never remove the upper packages
         "fgsim",
-        "fgsim.geo",
-        "fgsim.train",
+        # "fgsim.geo",
+        # "fgsim.train",
         # Always reload cli and config
         # "fgsim.cli",
         # "fgsim.config",
@@ -39,12 +39,12 @@ def main():
         "fgsim.geo.mapper",
         "fgsim.train.train",
         "fgsim.train.model",
-        "fgsim.train.generate",
         "fgsim.data_loader",
         "fgsim.train.holder",
         # Currently working on:
         # "fgsim.data_dumper",
         # "fgsim.geo.mapback",
+        # "fgsim.train.generate",
     }
     for modulename in local_modules - do_not_reload:
         print(f"Unloading {modulename}")

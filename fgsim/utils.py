@@ -22,9 +22,8 @@ def timing_val(func):
         res = func(*arg, **kw)
         t2 = time.time()
         print(func.__name__, t2 - t1)
-        return (res,)
-
-    return wrapper
+        return(res)
+    return(wrapper)
 
 
 def count_parameters(model):

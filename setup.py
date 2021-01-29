@@ -43,6 +43,7 @@ install_requirements = [
     "tqdm==4.56.0",
     "uproot==4.0.0",
     "uproot3==3.14.2",
+    "psutil==5.8.0",
 ]
 
 extras = {
