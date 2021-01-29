@@ -67,3 +67,6 @@ class modelHolder:
 
         print("DONE TRAINING")
         torch.save(self.generator.state_dict(), "output/generator.pth")
+
+
+model_holder = modelHolder()

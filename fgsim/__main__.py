@@ -22,10 +22,34 @@ def main():
     # so that
     # `ipython >>> %run -m fgsim train`
     # works
-    for modulename in [
-        e for e in sys.modules if e.startswith("fgsim.") and "mapper" not in e
-    ]:
+    local_package_name = "fgsim"
+    local_modules = {e for e in sys.modules if e.startswith(local_package_name)}
+    do_not_reload = {
+        # Never remove the upper packages
+        "fgsim",
+        "fgsim.geo",
+        "fgsim.train",
+        # Always reload cli and config
+        # "fgsim.cli",
+        # "fgsim.config",
+        # utils dont change frequently
+        "fgsim.utils",
+        "fgsim.plot",
+        # The rest
+        "fgsim.geo.mapper",
+        "fgsim.train.train",
+        "fgsim.train.model",
+        "fgsim.train.generate",
+        "fgsim.data_loader",
+        "fgsim.train.holder",
+        # Currently working on:
+        # "fgsim.data_dumper",
+        # "fgsim.geo.mapback",
+    }
+    for modulename in local_modules - do_not_reload:
+        print(f"Unloading {modulename}")
         del sys.modules[modulename]
+    print("Unloading complete")
     from .cli import args
 
     # if args.command == "geo":
@@ -35,18 +59,16 @@ def main():
     #     import geomapper as xt
 
     if args.command == "train":
-        from .train.holder import modelHolder
+        from .train.holder import model_holder
         from .train.train import training_procedure
 
-        m = modelHolder()
-        training_procedure(m)
+        training_procedure(model_holder)
 
     if args.command == "generate":
         from .train.generate import generation_procedure
-        from .train.holder import modelHolder
+        from .train.holder import model_holder
 
-        m = modelHolder()
-        generation_procedure(m)
+        generation_procedure(model_holder)
 
 
 if __name__ == "__main__":
