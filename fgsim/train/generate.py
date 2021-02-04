@@ -1,5 +1,3 @@
-# from torchvision.utils import save_image
-
 from ..config import conf
 from ..data_dumper import dump_generated_events
 from ..geo.mapback import mapBack

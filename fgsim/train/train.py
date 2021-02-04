@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 from ..config import conf, device
 from ..plot import plotlosses
-from ..utils import memGB, memReport
+from ..utils.memory import memGB, memReport
 from .holder import modelHolder
 
 

@@ -8,8 +8,8 @@ import yaml
 from tqdm import tqdm
 
 from ..config import conf
-from ..istarmap import istarmap
-from ..utils import timeit
+from ..utils.istarmap import istarmap
+from ..utils.timeit import timeit
 
 threshold = np.float(conf.mapper.energy_threshold)
 nvoxel = reduce(lambda a, b: a * b, conf.mapper.calo_img_shape)
