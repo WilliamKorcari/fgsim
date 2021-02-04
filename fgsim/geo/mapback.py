@@ -1,23 +1,25 @@
 from functools import reduce
+from logging import raiseExceptions
 from multiprocessing import Pool
 
 import awkward as ak
 import numpy as np
 import yaml
 
-import numba
+import numba as nb
 from tqdm import tqdm
 
 from ..config import conf
+from ..utils import timeit
 
 
 threshold = np.float(conf.mapper.energy_threshold)
 nvoxel = reduce(lambda a, b: a * b, conf.mapper.calo_img_shape)
-xyzvars = [str(e) for e in conf.mapper.xyz]
+xyzvars = nb.typed.List([str(e) for e in conf.mapper.xyz])
 
-cellposD = numba.typed.Dict.empty(
-    key_type=numba.types.unicode_type,
-    value_type=numba.types.float32[:],
+cellposD = nb.typed.Dict.empty(
+    key_type=nb.types.unicode_type,
+    value_type=nb.types.float32[:],
 )
 
 with open(f"wd/{conf.tag}/cellpos.yaml", "r") as f:
@@ -25,11 +27,7 @@ with open(f"wd/{conf.tag}/cellpos.yaml", "r") as f:
     for v in xyzvars:
         cellposD[v] = np.array(y[v], dtype=np.float32)
 
-
-@numba.njit("int64[:,:](float32[:,:,:])")
-def get_idxs_under_threshold(arr: np.ndarray):
-    arr = np.argwhere(np.abs(arr) < threshold)
-    return arr[: min(len(arr), 5000)]
+cellPosDType = nb.typeof(cellposD)
 
 
 class mapBack:
@@ -46,28 +44,24 @@ class mapBack:
         arr = builder.snapshot()
         return arr
 
-    def _map_calo_to_hitsMbuilderRec(self, eventNumber: int, caloimg) -> ak.Array:
-        builder = ak.ArrayBuilder()
-        _map_calo_to_hitsMbuilderRec_jit(eventNumber, caloimg, builder)
-        arr = builder.snapshot()
-        return arr
-
     def map_events(self, events: np.ndarray) -> ak.Array:
         nevents = len(events)
         events = np.array(events)
 
-        if conf.debug:
+        if True:
             eventL = []
-            for fct in (
-                # self._map_calo_to_hitsMListDict,
-                # self._map_calo_to_hitsMbuilderList,
-                self._map_calo_to_hitsMbuilderRec,
-            ):
-                print(fct.__name__)
-                for eventNumber, caloimg in tqdm(
-                    zip(range(nevents), events), total=nevents
+            # for eventNumber, caloimg in tqdm(
+            #     zip(range(nevents), events), total=nevents
+            # ):
+            for eventNumber, caloimg in zip(range(nevents), events):
+                for fct in (
+                    # self._map_calo_to_hitsMListDict,
+                    # self._map_calo_to_hitsMbuilderList,
+                    map_calo_to_hitsA,
                 ):
-                    arr = fct(eventNumber, caloimg)
+                    print(fct.__name__)
+
+                    arr = timeit(fct, n=10)(eventNumber, caloimg)
                     assert set(arr.fields) == {
                         "eventNumber",
                         "recHit_x",
@@ -76,12 +70,14 @@ class mapBack:
                         "energy",
                     }
                     eventL.append(arr)
+                break
+
         else:
             with Pool(5) as p:
                 eventL = list(
                     tqdm(
                         p.starmap(
-                            self._map_calo_to_hitsMbuilderRec,
+                            map_calo_to_hitsA,
                             zip(range(nevents), events),
                         ),
                         total=nevents,
@@ -92,9 +88,9 @@ class mapBack:
         return res
 
 
-# ak.numba.register()
+# ak.nb.register()
 
-# @numba.njit(signature=(numba.types.int64,numba.types.float32[:,:,:]))
+# @nb.njit(signature=(nb.types.int64,nb.types.float32[:,:,:]))
 def _map_calo_to_hitsMListDict_jit(eventNumber: int, caloimg: np.ndarray) -> ak.Array:
     # Get the indices with entries over the energy threshold
     idxs = get_idxs_under_threshold(np.array(caloimg))
@@ -113,8 +109,8 @@ def _map_calo_to_hitsMListDict_jit(eventNumber: int, caloimg: np.ndarray) -> ak.
     return arr
 
 
-# @numba.njit(
-#     (numba.types.int64, numba.types.float32[:, :, :], ak.ArrayBuilder.numba_type)
+# @nb.njit(
+#     (nb.types.int64, nb.types.float32[:, :, :], ak.ArrayBuilder.nb_type)
 # )
 def _map_calo_to_hitsMbuilderList_jit(
     eventNumber: int, caloimg: np.ndarray, builder: ak.ArrayBuilder
@@ -149,24 +145,69 @@ def _map_calo_to_hitsMbuilderList_jit(
     return
 
 
-# @numba.njit(
-#     (numba.types.int64, numba.types.float32[:, :, :], ak.ArrayBuilder.numba_type)
-# )
-def _map_calo_to_hitsMbuilderRec_jit(
-    eventNumber: int, caloimg: np.ndarray, builder: ak.ArrayBuilder
-):
-    idxs = get_idxs_under_threshold(caloimg)
-    builder = ak.ArrayBuilder()
-    for idx in idxs:
-        builder.begin_record()
-        builder.field("eventNumber")
-        builder.integer(eventNumber)
-        for coordinate, i in zip(xyzvars, idx):
-            builder.field(coordinate)
-            builder.real(cellposD[coordinate][i])
+# def map_calo_to_hitsMbuilderRec_jit(
+#     eventNumber: int, caloimg: np.ndarray, builder: ak.ArrayBuilder
+# ):
+#     idxs = get_idxs_under_threshold(caloimg)
 
-        # idx is a tensor here, to get the positon, it needs to be converted to a tuple
-        builder.field("energy")
-        builder.real(caloimg[tuple(idx)].item())
-        builder.end_record()
-    return
+#     nhits = len(idxs)
+
+#     builder.begin_record()
+#     builder.field("eventNumber")
+#     builder.append(ak.layout.NumpyArray(eventNumber_field(nhits, eventNumber)))
+#     builder.field("energy")
+#     builder.append(ak.layout.NumpyArray(energy_field(idxs, nhits, caloimg)))
+
+#     coord_arr = coordinate_field(idxs, nhits, cellposD)
+
+#     for i, coordinate in enumerate(xyzvars):
+#         builder.field(coordinate)
+#         builder.append(ak.layout.NumpyArray(coord_arr[:, i]))
+
+#     return
+
+
+def map_calo_to_hitsA(eventNumber: int, caloimg: np.ndarray):
+    idxs = get_idxs_under_threshold(caloimg)
+
+    nhits = len(idxs)
+
+    arrD = {}
+    arrD["eventNumber"] = ak.layout.NumpyArray(eventNumber_field(nhits, eventNumber))
+    arrD["energy"] = ak.layout.NumpyArray(energy_field(idxs, nhits, caloimg))
+
+    coord_arr = coordinate_field(idxs, nhits, cellposD)
+
+    for i, coordinate in enumerate(xyzvars):
+        arrD[coordinate] = ak.layout.NumpyArray(coord_arr[:, i])
+    arr = ak.Array(arrD)
+    return arr
+
+
+# @nb.njit("int64[:,:](float32[:,:,:])")
+@nb.njit()
+def get_idxs_under_threshold(arr: np.ndarray):
+    arr = np.argwhere(np.abs(arr) < threshold)
+    return arr[: min(len(arr), 5000)]
+
+
+@nb.njit()
+def energy_field(idxs, nhits, caloimg):
+    eV = np.empty(nhits, dtype=np.float32)
+    for i, idx in enumerate(idxs):
+        eV[i] = caloimg[idx[0], idx[1], idx[2]]
+    return eV
+
+
+@nb.njit(nb.types.int64[:](nb.types.int64, nb.types.int64))
+def eventNumber_field(nhits, eventNumber):
+    return np.repeat(eventNumber, nhits)
+
+
+@nb.njit()
+def coordinate_field(idxs, nhits, cellposD):
+    cV = np.empty((nhits, 3), dtype=np.float32)
+    for i, idx in enumerate(idxs):
+        for j, coord in enumerate(cellposD):
+            cV[i, j] = cellposD[coord][idx[j]]
+    return cV
