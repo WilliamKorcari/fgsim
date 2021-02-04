@@ -13,15 +13,16 @@ def most_freq_zval(posD: OrderedDict):
     return zval
 
 
-def timing_val(func):
+def timeit(func, n=1):
     import time
 
     def wrapper(*arg, **kw):
         """source: http://www.daniweb.com/code/snippet368.html"""
         t1 = time.time()
-        res = func(*arg, **kw)
+        for i in range(n):
+            res = func(*arg, **kw)
         t2 = time.time()
-        print(func.__name__, t2 - t1)
+        print(func.__name__, (t2 - t1)/n)
         return(res)
     return(wrapper)
 
