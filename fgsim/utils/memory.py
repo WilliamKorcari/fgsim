@@ -23,19 +23,19 @@ def memReport():
             else:
                 name = "Unknown"
             if torch.is_tensor(obj) or type(obj) == dict or len(name) > 20:
-                print(f"Type {type(obj)} {size*0.000001}MB")
+                logger.info(f"Type {type(obj)} {size*0.000001}MB")
                 pprint(obj)
             else:
-                print(f"{name}\t {size*0.000001}MB")
+                logger.info(f"{name}\t {size*0.000001}MB")
 
 
 def memGB():
     import psutil
 
-    # print(psutil.cpu_percent())
-    # print(psutil.virtual_memory())  # physical memory usage
+    # logger.debug(psutil.cpu_percent())
+    # logger.debug(psutil.virtual_memory())  # physical memory usage
     pid = os.getpid()
     py = psutil.Process(pid)
     memoryUse = py.memory_info()[0] / 2.0 ** 30  # memory use in GB...I think
-    # print("memory GB:", memoryUse)
+    # logger.debug("memory GB:", memoryUse)
     return memoryUse

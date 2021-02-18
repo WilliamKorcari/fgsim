@@ -8,6 +8,7 @@ from tqdm import tqdm
 from ..config import conf, device
 from ..plot import plotlosses
 from ..utils.memory import memGB, memReport
+from ..utils.logger import logger
 from .holder import modelHolder
 
 
@@ -76,7 +77,7 @@ def training_procedure(c: modelHolder):
     # Initialize the training
     c.generator.train()
     c.discriminator.train()
-    print(f"Starting with epoch {c.metrics['epoch'] + 1}")
+    logger.info(f"Starting with epoch {c.metrics['epoch'] + 1}")
 
     # Iterate over the Epochs
     for c.metrics["epoch"] in range(c.metrics["epoch"] + 1, n_epochs):
@@ -129,9 +130,9 @@ def training_procedure(c: modelHolder):
         c.metrics["memory"].append(memory_used)
         if conf["loglevel"] >= 2:
             memReport()
-            print(f"memory used: {c.metrics['memory']}")
+            logger.debug(f"memory used: {c.metrics['memory']}")
 
-        print(
+        logger.info(
             f"Epoch { c.metrics['epoch'] }/{n_epochs}: "
             + f"Generator loss: {epoch_loss_g:.8f}, "
             + f"Discriminator loss: {epoch_loss_d:.8f}"

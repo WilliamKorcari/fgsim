@@ -3,20 +3,20 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-t", "--tag", default="default", required=False)
-
+parser.add_argument(
+    "--debug",
+    dest="debug",
+    help="Dump the old model",
+    action="store_true",
+    default=False,
+    required=False,
+)
 subparsers = parser.add_subparsers(help="Available Commands", dest="command")
 
 train_parser = subparsers.add_parser("train")
 train_parser.add_argument(
     "-d",
     "--dump_model",
-    help="Dump the old model",
-    action="store_true",
-    default=False,
-    required=False,
-)
-train_parser.add_argument(
-    "--debug",
     help="Dump the old model",
     action="store_true",
     default=False,

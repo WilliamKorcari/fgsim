@@ -17,3 +17,4 @@ with open(f"wd/{args.tag}/config.yaml", "r") as fp:
     fileconf = OmegaConf.load(fp)
 
 conf = OmegaConf.merge(vars(args), fileconf)
+

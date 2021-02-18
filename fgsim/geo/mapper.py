@@ -7,6 +7,7 @@ import numpy as np
 import yaml
 
 from ..config import conf
+from ..utils.logger import logger
 
 # from ..plot import plot3d, plot_z_pos
 
@@ -67,7 +68,6 @@ class Geomapper:
         # the unique entries will later corrispond
         # to the lower border of the binning
         uniques = np.unique(arr)
-        # print(f"uniques {uniques} ")
         # calculate the distance
         dist = uniques[1:] - uniques[:-1]
 
@@ -117,13 +117,10 @@ class Geomapper:
         for val in dist:
             sum += val
             cellpositions.append(sum)
-        # print(f"dist {dist} \n \n cellpositons \n {cellpositions}")
+        logger.debug(f"dist {dist} \n \n cellpositons \n {cellpositions}")
         cellpositions = np.array(cellpositions)
         assert all(np.diff(cellpositions) > 0)
         return cellpositions
-
-        # hval, hcnt = count_and_sort(dist)
-        # pprint({"dist": dist, "hval": hval, "hcnt": hcnt})
 
         # # Time for the combinatorics:
         # # check if we can replace some of the the less frequent

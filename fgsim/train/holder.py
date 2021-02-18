@@ -7,6 +7,7 @@ from ..config import conf, device
 from ..data_loader import eventarr, posD
 from ..geo.mapper import Geomapper
 from ..utils.count_parameters import count_parameters
+from ..utils.logger import logger
 from .model import Discriminator, Generator
 
 
@@ -65,8 +66,9 @@ class modelHolder:
 
         self.generator, self.discriminator = training_procedure(self)
 
-        print("DONE TRAINING")
+        logger.info("Training finished")
         torch.save(self.generator.state_dict(), "output/generator.pth")
+        logger.info("Model saved")
 
 
 model_holder = modelHolder()
