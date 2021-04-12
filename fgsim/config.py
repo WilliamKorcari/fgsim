@@ -1,3 +1,4 @@
+import os
 from omegaconf import OmegaConf
 
 from .cli import args
@@ -12,8 +13,11 @@ def get_device():
 
 device = get_device()
 
+fn = f"wd/{args.tag}/config.yaml"
+if not os.path.isfile(fn):
+    fn = 'fgsim/default.yaml'
 
-with open(f"wd/{args.tag}/config.yaml", "r") as fp:
+with open(fn, "r") as fp:
     fileconf = OmegaConf.load(fp)
 
 conf = OmegaConf.merge(vars(args), fileconf)
