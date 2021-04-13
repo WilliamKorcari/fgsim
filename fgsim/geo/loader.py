@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from typing import List
 
+import os
+import pickle
 import awkward as ak
 import numpy as np
 import uproot
@@ -16,7 +18,7 @@ keydf = ak.to_pandas(arr[0])
 
 # load the geometry
 
-fngeopic = geoyamlpath.strip('yaml')+'pickle'
+fngeopic = conf["geoyamlpath"].strip('yaml')+'pickle'
 if os.path.isfile(fngeopic):
     with open(fngeopic, "rb") as f:
         geoD = pickle.load(f)
