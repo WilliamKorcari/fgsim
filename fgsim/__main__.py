@@ -46,6 +46,7 @@ def main():
     #     import geomapper as xt
 
     if args.command == "train":
+        from .geo.loader import graph
         from .train.holder import model_holder
         from .train.train import training_procedure
 
