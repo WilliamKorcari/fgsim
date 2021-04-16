@@ -33,14 +33,12 @@ if os.path.isfile(conf["graphpath"]):
     graph = torch.load(conf["graphpath"])
 else:
     # Instanciate empty array
-    edgeA = np.empty((2,0), dtype=int)
-    logger.info(f"egdeA shape: {egdeA.shape}")
+    edgeA = np.empty((2, 0), dtype=int)
+    logger.info(f"edgeA shape: {edgeA.shape}")
 
     for originid, row in keydf.iterrows():
         for i in range(row.nneighbors + row.ngapneighbors):
             edgeA = np.append(edgeA, [[originid], [row["n" + str(i)]]], axis=1)
-
-
 
     # Prune
     edgeA = edgeA[:, edgeA[0] != 0]
@@ -49,3 +47,5 @@ else:
     nodes = torch.tensor(keydf.index.to_numpy(dtype=int))
     graph = Data(x=nodes, edge_index=edge_index)
     torch.save(graph, conf["graphpath"])
+
+logger.info("Done loading graph.")

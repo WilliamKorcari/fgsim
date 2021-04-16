@@ -4,6 +4,7 @@ import pretty_errors
 
 from .utils.logger import logger
 
+
 def main():
     # always reload the local modules
     # so that
@@ -37,22 +38,17 @@ def main():
         logger.info(f"Unloading {modulename}")
         del sys.modules[modulename]
     logger.info("Unloading complete")
-    from .cli import args
+    from .config import conf
 
-    # if args.command == "geo":
-    #     from .geo import mapper
-    #     _ = mapper.geomapper("data/test.toml")
-    #     import numpy as np
-    #     import geomapper as xt
-
-    if args.command == "train":
+    logger.info(f"Running command {conf['command']}")
+    if conf["command"] == "train":
         from .geo.loader import graph
         from .train.holder import model_holder
         from .train.train import training_procedure
 
         training_procedure(model_holder)
 
-    if args.command == "generate":
+    if conf["command"] == "generate":
         from .train.generate import generation_procedure
         from .train.holder import model_holder
 
