@@ -68,7 +68,7 @@ class HGCalShowers(InMemoryDataset):
     def load_ntuple(self, path):
         with uproot.open(path)[self.tree] as ntuple:
             E = np.array(ntuple["simHit_E"].array(library = "np"))
-            Z = np.array(ntuple["simHit_z"].array(library = "np"))
+#            Z = np.array(ntuple["simHit_z"].array(library = "np"))
             detId = np.array(ntuple["simHit_detid"].array(library = "np")) 
             gen_E = np.array(ntuple["genPh_E"].array(library = "np")) 
 
@@ -77,9 +77,9 @@ class HGCalShowers(InMemoryDataset):
             #gen_phi = np.array(ntuple["genPh_phi"].array(library = "np"))
 
             #select only z+ side of the calorimeter
-            pos_idx, neg_idx = side_indeces_bool_mask(Z, (len(Z)))
-            E      = filter_array(E , pos_idx, len(E))
-            detId  = filter_array(detId , pos_idx, len(E))
+#            pos_idx, neg_idx = side_indeces_bool_mask(Z, (len(Z)))
+#            E      = filter_array(E , pos_idx, len(E))
+#            detId  = filter_array(detId , pos_idx, len(E))
 
             #clustering hits on the same cell
             idx = {}
@@ -192,7 +192,8 @@ class HGCalShowers(InMemoryDataset):
                 e[j] = torch.reshape(e[j], (e[h].size()[0], 1))
                 data_list.append(Data(x =e[j],
                                  edge_index = torch.tensor(local_adj.to_sparse()._indices(), dtype = torch.long), 
-                                 y = label
+                                 y = label,
+                                 local_mapID = fmx
                                 )
                             )
         print(f"The dataset contains {len(data_list)} showers")
