@@ -68,7 +68,9 @@ class HGCalShowers(InMemoryDataset):
     def load_ntuple(self, path):
         with uproot.open(path)[self.tree] as ntuple:
             E = np.array(ntuple["simHit_E"].array(library = "np"))
-#            Z = np.array(ntuple["simHit_z"].array(library = "np"))
+            Z = np.array(ntuple["simHit_z"].array(library = "np"))
+            X = np.array(ntuple["simHit_x"].array(library = "np"))
+            Y = np.array(ntuple["simHit_y"].array(library = "np"))
             detId = np.array(ntuple["simHit_detid"].array(library = "np")) 
             gen_E = np.array(ntuple["genPh_E"].array(library = "np")) 
 
@@ -85,12 +87,18 @@ class HGCalShowers(InMemoryDataset):
             idx = {}
             e = np.empty_like(detId, dtype=object)
             detid = np.empty_like(detId, dtype=object)
+            x = np.empty_like(detId, dtype=object)
+            y = np.empty_like(detId, dtype=object)
+            z = np.empty_like(detId, dtype=object)
 
             for i in range(len(detId)):
                 idx[i] = idx_cluster(detId[i])
                 detid[i] = new_coord(detId[i], idx[i])
+                x[i] = new_coord(X[i], idx[i])
+                y[i] = new_coord(Y[i], idx[i])
+                z[i] = new_coord(Z[i], idx[i])
                 e[i] = summed_e(E[i], idx[i])
-        return detid, e, gen_E
+        return detid, e, x, y, z, gen_E
             
     def cellid_adj_matrix(self): #pytorch_geometric adj_matrix format (tensor of connected edges with dim 2xnum_of_edges)
         fnlup = osp.join(self.geometry_dir, "DetIdLUT.root") #conf["luppath"]
@@ -172,7 +180,7 @@ class HGCalShowers(InMemoryDataset):
         for iFile in range(len(self.raw_file_names)):
             print(f'Opening file {self.raw_file_names[iFile]}')
             path = osp.join(self.raw_dir, self.raw_file_names[iFile])
-            detid, e, gen_E = self.load_ntuple(path)
+            detid, e, x, y, z, gen_E = self.load_ntuple(path)
                 
             for j in range(len(detid)):
                 fmx = np.array(detid[j], dtype = int)
@@ -183,14 +191,20 @@ class HGCalShowers(InMemoryDataset):
                 #remove hits outside the considered portion of calorimeter (window)
                 fmx = np.delete(fmx, bad_idx, 0)
                 e[j] = np.delete(e[j], bad_idx, 0)
+                x[j] = np.delete(x[j], bad_idx, 0)
+                y[j] = np.delete(y[j], bad_idx, 0)
+                z[j] = np.delete(z[j], bad_idx, 0)
                 feat_idx = torch.tensor([np.where(mapID==k)[0][0] for k in fmx]).to(self.device)
                 local_adj = torch.index_select(adj, 0, feat_idx)
                 local_adj = torch.index_select(local_adj, 1, feat_idx)
                 label = torch.tensor(gen_E[j][0]) if self.include_labels else None
             #for h in range(len(e)):
-                e[j] = torch.tensor(e[j])
-                e[j] = torch.reshape(e[j], (e[h].size()[0], 1))
-                data_list.append(Data(x =e[j],
+                features = np.stack((e[j], x[j], y[j], z[j]), axis = 1)
+                features = torch.tensor(features)
+
+                #e[j] = torch.tensor(e[j])
+                #e[j] = torch.reshape(e[j], (e[j].size()[0], 1))
+                data_list.append(Data(x = features,
                                  edge_index = torch.tensor(local_adj.to_sparse()._indices(), dtype = torch.long), 
                                  y = label,
                                  local_mapID = fmx
