@@ -1,8 +1,8 @@
 tag: default
 loglevel: 1
-luppath: 'wd/default/DetIdLUT.root'
-geoyamlpath: 'wd/default/geometry.yaml'
-graphpath: 'wd/default/graph.pth'
+luppath: '/afs/desy.de/user/k/korcariw/geo_ex/src/output/DetIdLUT.root'
+geoyamlpath: '/afs/desy.de/user/k/korcariw/geo_ex/src/output/geometry.yaml'
+graphpath: '/afs/desy.de/user/k/korcariw/geo_ex/src/output/graph.pth'
 mapper:
   threshold: 1e-02
   nevents: 1000
