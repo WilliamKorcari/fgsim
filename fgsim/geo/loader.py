@@ -34,6 +34,7 @@ else:
 
 if os.path.isfile(graphpath):
     graph = torch.load(graphpath)
+
 else:
     # Instanciate empty array
 
@@ -50,7 +51,10 @@ else:
 
     # Prune
     print("Pruning...\n")
-    edgeA = edgeA[:, edgeA[0] != 0]
+    mask = edgeA[1]!=0
+    row= edgeA[0][mask]
+    col =edgeA[1][mask]
+    edgeA = row, col
     print("Saving the graph...\n")
     edge_index = torch.tensor(edgeA, dtype=torch.long)
     nodes = torch.tensor(keydf.index.to_numpy(dtype=int))
