@@ -36,6 +36,7 @@ if os.path.isfile(graphpath):
     graph = torch.load(graphpath)
 else:
     # Instanciate empty array
+
     edgeA = np.empty((2,0), dtype=int)
     #logger.info(f"egdeA shape: {egdeA.shape}")
     print('\nBuilding edge_index...\n')
@@ -56,3 +57,4 @@ else:
     graph = Data(x=nodes, edge_index=edge_index)
     torch.save(graph, graphpath)
     print("Done.")
+
