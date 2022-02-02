@@ -72,6 +72,8 @@ class HGCalShowers(InMemoryDataset):
             X = np.array(ntuple["simHit_x"].array(library = "np"))
             Y = np.array(ntuple["simHit_y"].array(library = "np"))
             detId = np.array(ntuple["simHit_detid"].array(library = "np")) 
+            Layer = np.array(ntuple["simHit_layer"].array(library = "np"))
+            Thick = np.array(ntuple["simHit_cellThickness"].array(library = "np"))
             gen_E = np.array(ntuple["genPh_E"].array(library = "np")) 
 
             ##Might be needed for building on-the-fly the geometry file
@@ -83,13 +85,15 @@ class HGCalShowers(InMemoryDataset):
 #            E      = filter_array(E , pos_idx, len(E))
 #            detId  = filter_array(detId , pos_idx, len(E))
 
-            #clustering hits on the same cell
+            #aading up hits on the same cell
             idx = {}
             e = np.empty_like(detId, dtype=object)
             detid = np.empty_like(detId, dtype=object)
             x = np.empty_like(detId, dtype=object)
             y = np.empty_like(detId, dtype=object)
             z = np.empty_like(detId, dtype=object)
+            layer = np.empty_like(detId, dtype=object)
+            thick = np.empty_like(detId, dtype=object)
 
             for i in range(len(detId)):
                 idx[i] = idx_cluster(detId[i])
@@ -97,10 +101,12 @@ class HGCalShowers(InMemoryDataset):
                 x[i] = new_coord(X[i], idx[i])
                 y[i] = new_coord(Y[i], idx[i])
                 z[i] = new_coord(Z[i], idx[i])
+                thick[i] = new_coord(Z[i], idx[i])
+                layer[i] = new_coord(Z[i], idx[i])
                 e[i] = summed_e(E[i], idx[i])
-        return detid, e, x, y, z, gen_E
+        return detid, e, x, y, z, thick, layer, gen_E
             
-    def cellid_adj_matrix(self): #pytorch_geometric adj_matrix format (tensor of connected edges with dim 2xnum_of_edges)
+    def cellid_adj_matrix(self): #pytorch_geometric adj_matrix format (tensor of connected edges with dim [2, n_edges])
         fnlup = osp.join(self.geometry_dir, "DetIdLUT.root") #conf["luppath"]
         rf = uproot.open(fnlup)
         arr = rf["analyzer/tree"].arrays()
@@ -126,25 +132,29 @@ class HGCalShowers(InMemoryDataset):
             edgeA = np.empty((2,0), dtype=int)
 
             for originid, row in keydf.iterrows():
-                for i in range(row.nneighbors + row.ngapneighbors):
+                for i in range(12):
                     edgeA = np.append(edgeA, [[originid], [row["n" + str(i)]]], axis=1)
-
+                edgeA = np.append(edgeA, [[originid], [row["next"]]], axis=1)
+                edgeA = np.append(edgeA, [[originid], [row["previous"]]], axis=1)
 
             # Prune
-            edgeA = edgeA[:, edgeA[0] != 0]
-
+            print("Pruning...\n")
+            mask = edgeA[1]!=0
+            row= edgeA[0][mask]
+            col =edgeA[1][mask]
+            edgeA = row, col
             edge_index = torch.tensor(edgeA, dtype=torch.long)
             torch.save(edge_index, graphpath)
         return keydf.index, edge_index            
             
     def idx_adj_matrix(self, index, edge_index):
-        adjpath = osp.join(self.geometry_dir, "adj_matrix.pt")
+        adjpath = osp.join(self.geometry_dir, "fullAM.pt")
         mapID = pd.DataFrame(index)
 
         mapID = mapID["globalid"]
         if os.path.isfile(adjpath):
             adj = torch.load(adjpath)
-            
+	                 
             return mapID, adj
         else:
             ## makes a copy of adj matrix but using indeces of detids instead of directly detids
@@ -155,6 +165,7 @@ class HGCalShowers(InMemoryDataset):
             adj = torch.zeros([len(index), len(index)])
             adj[idx_pairs[0, :], idx_pairs[1, :]] = 1
             torch.save(adj, adjpath)
+            torch.save(mapID, osp.join(self.geometry_dir, "map_ids.pt"))
             return mapID, adj
 
         
@@ -180,8 +191,8 @@ class HGCalShowers(InMemoryDataset):
         for iFile in range(len(self.raw_file_names)):
             print(f'Opening file {self.raw_file_names[iFile]}')
             path = osp.join(self.raw_dir, self.raw_file_names[iFile])
-            detid, e, x, y, z, gen_E = self.load_ntuple(path)
-                
+            detid, e, x, y, z, thick, layer, gen_E = self.load_ntuple(path)
+            outid = detid    
             for j in range(len(detid)):
                 fmx = np.array(detid[j], dtype = int)
                 bad_idx = []
@@ -194,12 +205,15 @@ class HGCalShowers(InMemoryDataset):
                 x[j] = np.delete(x[j], bad_idx, 0)
                 y[j] = np.delete(y[j], bad_idx, 0)
                 z[j] = np.delete(z[j], bad_idx, 0)
+                outid[j] = np.delete(outid[j], bad_idx, 0)
+                thick[j] = np.delete(thick[j], bad_idx, 0)
+                layer[j] = np.delete(layer[j], bad_idx, 0)
                 feat_idx = torch.tensor([np.where(mapID==k)[0][0] for k in fmx]).to(self.device)
                 local_adj = torch.index_select(adj, 0, feat_idx)
                 local_adj = torch.index_select(local_adj, 1, feat_idx)
                 label = torch.tensor(gen_E[j][0]) if self.include_labels else None
             #for h in range(len(e)):
-                features = np.stack((e[j], x[j], y[j], z[j]), axis = 1)
+                features = np.stack((e[j], x[j], y[j], z[j], outid[j], thick[j], layer[j]), axis = 1)
                 features = torch.tensor(features)
 
                 #e[j] = torch.tensor(e[j])
